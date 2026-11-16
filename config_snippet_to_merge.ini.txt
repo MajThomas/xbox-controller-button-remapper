@@ -1,0 +1,16 @@
+; These are examples ONLY. Merge individual keys into existing sections of the
+; config.ini next to the EXE. Do not replace that file with this snippet.
+[settings]
+debug = 1
+poll_interval_ms = 2
+
+[XboxMultiClick]
+enabled = 1
+disable_system_gamebar_button = 1
+input_source = joystick
+joystick_button = 10
+multi_click_interval_ms = 350
+down_debounce_ms = 0
+single_click_action = screenshot
+double_click_action = gamebar
+triple_click_action = win_tab

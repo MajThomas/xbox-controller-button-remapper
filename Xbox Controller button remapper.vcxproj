@@ -110,10 +110,6 @@
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;comctl32.lib;SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)config.ini" "$(OutDir)"
-xcopy /y /d "$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -122,10 +118,6 @@ xcopy /y /d "$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll" "$(OutDir)"</Command
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;comctl32.lib;SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)config.ini" "$(OutDir)"
-xcopy /y /d "$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -138,6 +130,11 @@ xcopy /y /d "$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll" "$(OutDir)"</Command
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
+    <ClInclude Include="XboxMultiClick.h" />
+    <ClInclude Include="XboxInputRouting.h" />
+    <ClInclude Include="TaskViewXGuard.h" />
+    <ClInclude Include="TaskViewDetector.h" />
+    <ClInclude Include="XboxActionBinding.h" />
     <ClInclude Include="INI.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScreenCapture.h" />
@@ -155,6 +152,21 @@ xcopy /y /d "$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll" "$(OutDir)"</Command
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <!-- Use MSBuild Copy rather than cmd.exe/xcopy (avoids MSB3073/9009).
+       User-modified config.ini in the output directory is never overwritten. -->
+  <Target Name="CopyXboxRuntimeAssets" AfterTargets="Build" Condition="'$(Platform)' == 'x64'">
+    <Copy SourceFiles="$(ProjectDir)config.ini"
+          DestinationFiles="$(TargetDir)config.ini"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(ProjectDir)config.ini') and !Exists('$(TargetDir)config.ini')" />
+    <Copy SourceFiles="$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll"
+          DestinationFiles="$(TargetDir)SDL3.dll"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll')" />
+    <Warning Text="SDL3.dll missing from SDL\VisualC\x64\Release and output folder. Copy the matching x64 SDL3.dll next to the EXE before running."
+             Condition="!Exists('$(ProjectDir)SDL\VisualC\x64\Release\SDL3.dll') and !Exists('$(TargetDir)SDL3.dll')" />
+  </Target>
+
   <ImportGroup Label="ExtensionTargets">
     <Import Project="packages\Microsoft.Windows.CppWinRT.2.0.240405.15\build\native\Microsoft.Windows.CppWinRT.targets" Condition="Exists('packages\Microsoft.Windows.CppWinRT.2.0.240405.15\build\native\Microsoft.Windows.CppWinRT.targets')" />
     <Import Project="packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />

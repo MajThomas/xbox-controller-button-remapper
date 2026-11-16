@@ -1,4 +1,5 @@
 ﻿#include "common.h"
+#include <cwctype> // std::iswspace for wchar_t titles
 
 const wchar_t szProgramName[] = L"Xbox Controller Button Remapper";
 
@@ -72,17 +73,17 @@ std::wstring string_to_wstring(const std::string& str)
 // Source: https://stackoverflow.com/a/217605
 void ltrim(std::wstring& s)
 {
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch)
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](wchar_t ch)
 		{
-			return !std::isspace(ch);
+			return !std::iswspace(ch);
 		}));
 }
 
 void rtrim(std::wstring& s)
 {
-	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch)
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](wchar_t ch)
 		{
-			return !std::isspace(ch);
+			return !std::iswspace(ch);
 		}).base(), s.end());
 }
 
@@ -136,6 +137,10 @@ void trim(std::wstring& s)
 
 void set_file_path(std::wstring extension)
 {
+    // Never reuse a previous capture target after a directory error.
+    file_path.clear();
+    folder_path.clear();
+    filename.clear();
 	HWND foreground = GetForegroundWindow();
 	WCHAR window_title[256];
 	GetWindowText(foreground, window_title, _countof(window_title));

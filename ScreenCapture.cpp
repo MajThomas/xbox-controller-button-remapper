@@ -655,6 +655,7 @@ void LoadOptions(
 
 void take_screenshot()
 {
+    if (debug) SDL_Log("%s: Screenshot requested.\n", get_date_time().c_str());
     auto isCaptureSupported = winrt::Windows::Graphics::Capture::GraphicsCaptureSession::IsSupported();
 
     if (!isCaptureSupported)
@@ -693,13 +694,25 @@ void take_screenshot()
     try
     {
         set_file_path(L".png");
+        if (file_path.empty())
+        {
+            SDL_Log("%s: Screenshot failed: could not prepare destination folder.\n",
+                get_date_time().c_str());
+            return;
+        }
+        if (debug)
+            SDL_Log("%s: Screenshot target folder: %ls\n",
+                get_date_time().c_str(), folder_path.c_str());
         MainAsync().get();
     }
     catch (winrt::hresult_error const& error)
     {
-        if (debug)
-        {
-            SDL_Log("%s: 0x%08x - %s\n", get_date_time().c_str(), error.code().value, winrt::to_string(error.message()).c_str());
-        }
+        SDL_Log("%s: Screenshot failed: 0x%08x - %s\n", get_date_time().c_str(),
+            static_cast<unsigned int>(error.code().value),
+            winrt::to_string(error.message()).c_str());
+    }
+    catch (const std::exception& error)
+    {
+        SDL_Log("%s: Screenshot failed: %s\n", get_date_time().c_str(), error.what());
     }
 }

@@ -33,6 +33,46 @@ Remapping the Share button only works when the **Windows Game Recording and Broa
 - Mute/unmute default recording/input device (microphone) (toggle and push-to-talk) using controller button
 - Configure the program using the config.ini file
 
+## Xbox Guide button press-only multi-click (custom build)
+
+In `[XboxMultiClick]`, **only DOWN events from the selected input source are counted**.
+The default source is now `input_source=joystick`, `joystick_button=10`, because actual third-party-controller logs showed repeated raw joystick DOWNs but not repeated mapped GUIDE DOWNs. For different controllers, select `input_source=gamepad` when appropriate. Neither source requires UP to register a click.
+This accommodates third-party controllers that emit a discrete Guide-button
+command without a reliable button-release event.
+
+| Number of DOWN events | Default action | Timing |
+| --- | --- | --- |
+| 1 | Capture screenshot (existing `take_screenshot()`) | After click window expires |
+| 2 | Xbox Game Bar (`Win+G`) | After click window expires |
+| 3 | Windows Task View (`Win+Tab`) | Immediately on third DOWN |
+
+- `multi_click_interval_ms=350`: maximum gap between consecutive DOWN events.
+- `down_debounce_ms=0`: **count every DOWN event**. Set ~20-50 ms only if
+  debug logs show duplicate DOWN events for one controller command.
+- `short_press_max_ms` is obsolete and ignored. Timing is DOWN-to-DOWN,
+  **not** based on press duration or release detection.
+- Share button is unchanged; controllers maintain independent click counts.
+- When press-only multi-click is enabled, **Xbox long-press remapping is not
+  available**, because its behavior cannot be reliably distinguished from
+  a click without a release indication. Set `enabled=0` to restore the
+  original Xbox button/long-press behavior.
+- Independently configure `single_click_action`, `double_click_action`,
+  `triple_click_action` as `screenshot`, `gamebar`, `win_tab`, `alt_tab`, `open_file`,
+  `toggle_mic`, `keys`, or `none`.
+- For `keys`, set corresponding `single_click_keys`, `double_click_keys`,
+  `triple_click_keys` to 1-8 decimal Win32 virtual-key codes.
+  Example: `91,9` for Win+Tab, `18,9` for Alt+Tab, `91,71` for Win+G.
+- Restart the tray program after changing `config.ini`.
+- `settings.debug=1` logs incoming Gamepad DOWN/UP events and pending counts.
+  If your controller never generates a second SDL DOWN for repeated commands,
+  the software cannot count commands not exposed to SDL; verify this in logs.
+- Disable Windows's controller Xbox-button Game Bar hotkey so the app can
+  receive the Guide-button events. Elevated games / anti-cheat-protected
+  applications may reject `SendInput`.
+
+The portable click-state tests are in `tests/test_xbox_multi_click.cpp` and
+`tests/test_xbox_action_binding.cpp`.
+
 ## Requirements
 - Xbox Controller
 - Windows 10/11 64-bit
